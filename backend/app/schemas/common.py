@@ -1,0 +1,17 @@
+from __future__ import annotations
+
+from typing import Any, Optional
+
+from pydantic import BaseModel
+
+
+class SuccessResponse(BaseModel):
+    success: bool = True
+    message: str = "Operation completed successfully"
+    data: Optional[Any] = None
+
+
+class ErrorResponse(BaseModel):
+    success: bool = False
+    message: str
+    error_code: Optional[str] = None

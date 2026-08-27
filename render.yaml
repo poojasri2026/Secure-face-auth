@@ -1,0 +1,35 @@
+services:
+  # Backend FastAPI Service (Docker)
+  - type: web
+    name: ai-mfa-backend
+    env: docker
+    rootDir: backend
+    dockerfilePath: Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-mfa-db
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_REFRESH_SECRET_KEY
+        generateValue: true
+      - key: OTP_PEPPER
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://your-frontend.vercel.app,http://localhost:5173
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: none
+
+databases:
+  # PostgreSQL Database
+  - name: ai-mfa-db
+    databaseName: mfa
+    user: mfa
+    plan: free

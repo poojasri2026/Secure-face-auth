@@ -1,0 +1,69 @@
+# =====================================================================
+# AI Secure MFA — full stack (Postgres + FastAPI backend + React/nginx).
+#
+# Usage:
+#   1. cp .env.example .env      # then fill in secrets
+#   2. docker compose up --build
+#   3. open http://localhost:5173
+#
+# The backend container waits for Postgres, runs Alembic migrations, then
+# serves the API. The frontend container serves the built SPA and proxies
+# /api to the backend, so the browser talks to a single origin.
+# =====================================================================
+name: ai-mfa
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mfa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mfa}
+      POSTGRES_DB: ${POSTGRES_DB:-mfa}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mfa} -d ${POSTGRES_DB:-mfa}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      # Exposed for local inspection (psql/GUI). Remove in production.
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # In containers, Alembic is the schema source of truth.
+      AUTO_CREATE_TABLES: "false"
+      RUN_MIGRATIONS: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Persist the InsightFace 'buffalo_l' model pack (downloaded on first use)
+      # so it is not re-fetched on every container restart.
+      - insightface:/home/appuser/.insightface
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Empty -> the SPA calls /api same-origin; nginx proxies to backend.
+        VITE_API_URL: ""
+        VITE_APP_NAME: "Secure Face Auth"
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  pgdata:
+  insightface:

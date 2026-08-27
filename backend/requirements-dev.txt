@@ -1,0 +1,10 @@
+# ============================================================================
+# AI Secure MFA — backend DEV/TEST dependencies
+# Install with:  pip install -r requirements.txt -r requirements-dev.txt
+# ============================================================================
+-r requirements.txt
+
+pytest==8.3.3
+pytest-asyncio==0.24.0
+httpx==0.27.2                   # ASGI transport for endpoint tests
+aiosqlite==0.20.0              # in-memory/file SQLite for the test database

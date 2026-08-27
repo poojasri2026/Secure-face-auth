@@ -1,0 +1,29 @@
+# Keep the build context small and never ship local secrets / caches.
+.env
+*.env
+!.env.example
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+.venv/
+venv/
+env/
+
+*.sqlite3
+*.db
+test_mfa.db
+
+# Model weights are downloaded at runtime, never baked into the image.
+models/
+*.onnx
+
+.git/
+.gitignore
+*.log

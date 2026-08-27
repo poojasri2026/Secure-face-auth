@@ -1,0 +1,41 @@
+# ---- Secrets / environment ----
+.env
+*.env
+!.env.example
+backend/.env
+frontend/.env
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.sqlite3
+*.db
+
+# ---- Node / frontend ----
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# ---- ML model cache ----
+# InsightFace / onnx model weights are downloaded at runtime; do not commit them
+models/
+*.onnx
+~/.insightface/
+
+# ---- Editor / OS ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log

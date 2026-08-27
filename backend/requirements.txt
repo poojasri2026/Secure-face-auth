@@ -1,0 +1,37 @@
+# ============================================================================
+# AI Secure MFA — backend runtime dependencies
+# Python 3.10+ recommended. Install with:  pip install -r requirements.txt
+# ============================================================================
+
+# --- Web framework / server ---
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.9          # multipart form parsing for FastAPI
+
+# --- Data / ORM ---
+sqlalchemy[asyncio]==2.0.35
+asyncpg==0.29.0                  # async PostgreSQL driver (app runtime)
+psycopg2-binary==2.9.9          # sync driver used by Alembic migrations
+alembic==1.13.2
+
+# --- Validation / settings ---
+pydantic==2.9.2
+pydantic-settings==2.5.2
+email-validator==2.2.0          # required by pydantic EmailStr
+
+# --- Auth / crypto ---
+PyJWT==2.9.0
+argon2-cffi==23.1.0             # Argon2id password hashing
+cryptography==43.0.1            # Fernet encryption of face embeddings
+
+# --- Computer vision / face recognition ---
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+insightface==0.7.3              # ArcFace (buffalo_l) embeddings
+onnxruntime==1.19.2             # ONNX inference backend for InsightFace
+
+# NOTE:
+# * insightface downloads the 'buffalo_l' model pack on first use to
+#   ~/.insightface/models (needs outbound network the first time).
+# * For GPU inference, replace onnxruntime with onnxruntime-gpu and set
+#   INSIGHTFACE_CTX_ID>=0.
