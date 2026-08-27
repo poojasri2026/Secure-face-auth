@@ -31,25 +31,17 @@ if not url.startswith("postgresql"):
     print(f"[entrypoint] Non-Postgres database ({scheme}); skipping DB wait.")
     sys.exit(0)
 
-from urllib.parse import urlparse
-u = urlparse(url.replace("+psycopg2", "").replace("+asyncpg", ""))
 import psycopg2
 
+conn_str = url.replace("postgresql+psycopg2://", "postgresql://").replace("postgresql+asyncpg://", "postgresql://")
 attempts = 30
 for i in range(1, attempts + 1):
     try:
-        psycopg2.connect(
-            host=u.hostname,
-            port=u.port or 5432,
-            user=u.username,
-            password=u.password,
-            dbname=(u.path or "/").lstrip("/") or None,
-            connect_timeout=3,
-        ).close()
+        psycopg2.connect(conn_str, connect_timeout=4).close()
         print(f"[entrypoint] Database reachable after {i} attempt(s).")
         break
     except Exception as exc:
-        print(f"[entrypoint] Waiting for database ({i}/{attempts})... {exc.__class__.__name__}")
+        print(f"[entrypoint] Waiting for database ({i}/{attempts})... {exc}")
         time.sleep(2)
 else:
     print("[entrypoint] Database not reachable; giving up.", file=sys.stderr)

@@ -103,13 +103,30 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
     @property
-    def database_url_sync(self) -> str:
-        """Sync driver URL for Alembic (swap asyncpg -> psycopg2, aiosqlite -> sqlite)."""
+    def database_url_async(self) -> str:
+        """Async driver URL for SQLAlchemy create_async_engine."""
         url = self.DATABASE_URL
-        return (
-            url.replace("+asyncpg", "+psycopg2")
-            .replace("+aiosqlite", "")
-        )
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        elif url.startswith("sqlite://") and not url.startswith("sqlite+"):
+            url = url.replace("sqlite://", "sqlite+aiosqlite://", 1)
+        return url
+
+    @property
+    def database_url_sync(self) -> str:
+        """Sync driver URL for Alembic and migration checks (swap to psycopg2 or sqlite)."""
+        url = self.DATABASE_URL
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+psycopg2://", 1)
+        elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
+            url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+        elif "+asyncpg" in url:
+            url = url.replace("+asyncpg", "+psycopg2")
+        elif "+aiosqlite" in url:
+            url = url.replace("+aiosqlite", "")
+        return url
 
     @property
     def is_production(self) -> bool:

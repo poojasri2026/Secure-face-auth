@@ -32,7 +32,7 @@ def _engine_kwargs() -> dict:
     return kwargs
 
 
-engine = create_async_engine(settings.DATABASE_URL, **_engine_kwargs())
+engine = create_async_engine(settings.database_url_async, **_engine_kwargs())
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
