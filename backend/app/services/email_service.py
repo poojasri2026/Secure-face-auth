@@ -60,28 +60,42 @@ async def send_email(to_email: str, subject: str, text_body: str, html_body: str
 
     import asyncio
     import smtplib
+    import socket
+    import ssl
 
     use_tls = settings.SMTP_PORT == 465
     start_tls = settings.SMTP_USE_TLS and not use_tls
 
     def _sync_send():
+        # Cloud providers like Render lack IPv6 routing; force IPv4 resolution
+        try:
+            addr_info = socket.getaddrinfo(settings.SMTP_HOST, settings.SMTP_PORT, socket.AF_INET, socket.SOCK_STREAM)
+            target_ip = addr_info[0][4][0] if addr_info else settings.SMTP_HOST
+        except Exception:
+            target_ip = settings.SMTP_HOST
+
         if use_tls:
+            context = ssl.create_default_context()
             with smtplib.SMTP_SSL(
-                host=settings.SMTP_HOST,
+                host=target_ip,
                 port=settings.SMTP_PORT,
                 timeout=settings.SMTP_TIMEOUT_SECONDS,
+                context=context,
             ) as server:
+                server._host = settings.SMTP_HOST
                 if settings.SMTP_USERNAME and settings.SMTP_PASSWORD:
                     server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
                 server.send_message(message)
         else:
             with smtplib.SMTP(
-                host=settings.SMTP_HOST,
+                host=target_ip,
                 port=settings.SMTP_PORT,
                 timeout=settings.SMTP_TIMEOUT_SECONDS,
             ) as server:
+                server._host = settings.SMTP_HOST
                 if start_tls:
-                    server.starttls()
+                    context = ssl.create_default_context()
+                    server.starttls(context=context)
                 if settings.SMTP_USERNAME and settings.SMTP_PASSWORD:
                     server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
                 server.send_message(message)
