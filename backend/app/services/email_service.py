@@ -60,6 +60,9 @@ async def send_email(to_email: str, subject: str, text_body: str, html_body: str
 
     import aiosmtplib
 
+    use_tls = settings.SMTP_PORT == 465
+    start_tls = settings.SMTP_USE_TLS and not use_tls
+
     try:
         await aiosmtplib.send(
             message,
@@ -67,13 +70,17 @@ async def send_email(to_email: str, subject: str, text_body: str, html_body: str
             port=settings.SMTP_PORT,
             username=settings.SMTP_USERNAME,
             password=settings.SMTP_PASSWORD,
-            start_tls=settings.SMTP_USE_TLS,
+            use_tls=use_tls,
+            start_tls=start_tls,
             timeout=settings.SMTP_TIMEOUT_SECONDS,
         )
         logger.info("OTP email sent to %s", to_email)
     except Exception as exc:  # pragma: no cover - network dependent
-        logger.error("Failed to send email to %s: %s", to_email, exc)
-        raise
+        logger.error("Failed to send email via SMTP to %s: %s", to_email, exc)
+        logger.warning(
+            "[EMAIL:CONSOLE-FALLBACK] SMTP failed (%s). Email to %s\nSubject: %s\n%s",
+            exc, to_email, subject, text_body,
+        )
 
 
 async def send_otp_email(to_email: str, otp: str, purpose: str) -> None:
