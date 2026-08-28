@@ -54,9 +54,9 @@ class Settings(BaseSettings):
     FACE_MIN_BOX_RATIO: float = 0.10             # face box area / image area
     FACE_ENROLL_MIN_SAMPLES: int = 3
     FACE_EMBEDDING_DIM: int = 512
-    INSIGHTFACE_MODEL: str = "buffalo_l"
+    INSIGHTFACE_MODEL: str = "buffalo_s"         # Lightweight (28MB download, <150MB RAM)
     INSIGHTFACE_CTX_ID: int = -1                 # -1 = CPU, >=0 = GPU id
-    INSIGHTFACE_DET_SIZE: int = 640
+    INSIGHTFACE_DET_SIZE: int = 320              # 320x320 for low-memory fast CPU inference
     FACE_EMBEDDING_ENCRYPTION_KEY: Optional[str] = None
 
     # ---- Liveness ----

@@ -24,9 +24,9 @@ _lock = threading.Lock()
 
 @dataclass
 class FaceConfig:
-    model: str = "buffalo_l"
+    model: str = "buffalo_s"
     ctx_id: int = -1
-    det_size: int = 640
+    det_size: int = 320
     min_det_score: float = 0.55
     min_box_ratio: float = 0.10
     embedding_dim: int = 512
@@ -62,17 +62,22 @@ def get_analyzer(cfg: FaceConfig):
             else ["CPUExecutionProvider"]
         )
         try:
-            app = FaceAnalysis(name=cfg.model, providers=providers)
+            # Only load detection and recognition (skips gender/age/landmark to keep RAM <150MB)
+            app = FaceAnalysis(
+                name=cfg.model,
+                providers=providers,
+                allowed_modules=["detection", "recognition"],
+            )
             app.prepare(ctx_id=cfg.ctx_id, det_size=(cfg.det_size, cfg.det_size))
         except Exception as exc:  # pragma: no cover
             raise FaceError(
                 "Failed to initialise the face model. On first run InsightFace "
-                "downloads weights (~300MB); ensure network access or pre-place "
+                "downloads weights (~30MB); ensure network access or pre-place "
                 f"the '{cfg.model}' pack under ~/.insightface/models. Details: {exc}",
                 "ENGINE_INIT_FAILED",
             ) from exc
         _analyzer = app
-        logger.info("InsightFace model '%s' ready (providers=%s).", cfg.model, providers)
+        logger.info("InsightFace model '%s' ready (providers=%s, modules=[detection, recognition]).", cfg.model, providers)
         return _analyzer
 
 
