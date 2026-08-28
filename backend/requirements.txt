@@ -14,10 +14,11 @@ asyncpg==0.29.0                  # async PostgreSQL driver (app runtime)
 psycopg2-binary==2.9.9          # sync driver used by Alembic migrations
 alembic==1.13.2
 
-# --- Validation / settings ---
+# --- Validation / settings / email ---
 pydantic==2.9.2
 pydantic-settings==2.5.2
 email-validator==2.2.0          # required by pydantic EmailStr
+aiosmtplib==3.0.2
 
 # --- Auth / crypto ---
 PyJWT==2.9.0

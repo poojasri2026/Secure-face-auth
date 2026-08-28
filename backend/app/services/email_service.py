@@ -58,24 +58,38 @@ async def send_email(to_email: str, subject: str, text_body: str, html_body: str
     message.set_content(text_body)
     message.add_alternative(html_body, subtype="html")
 
-    import aiosmtplib
+    import asyncio
+    import smtplib
 
     use_tls = settings.SMTP_PORT == 465
     start_tls = settings.SMTP_USE_TLS and not use_tls
 
+    def _sync_send():
+        if use_tls:
+            with smtplib.SMTP_SSL(
+                host=settings.SMTP_HOST,
+                port=settings.SMTP_PORT,
+                timeout=settings.SMTP_TIMEOUT_SECONDS,
+            ) as server:
+                if settings.SMTP_USERNAME and settings.SMTP_PASSWORD:
+                    server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+                server.send_message(message)
+        else:
+            with smtplib.SMTP(
+                host=settings.SMTP_HOST,
+                port=settings.SMTP_PORT,
+                timeout=settings.SMTP_TIMEOUT_SECONDS,
+            ) as server:
+                if start_tls:
+                    server.starttls()
+                if settings.SMTP_USERNAME and settings.SMTP_PASSWORD:
+                    server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+                server.send_message(message)
+
     try:
-        await aiosmtplib.send(
-            message,
-            hostname=settings.SMTP_HOST,
-            port=settings.SMTP_PORT,
-            username=settings.SMTP_USERNAME,
-            password=settings.SMTP_PASSWORD,
-            use_tls=use_tls,
-            start_tls=start_tls,
-            timeout=settings.SMTP_TIMEOUT_SECONDS,
-        )
-        logger.info("OTP email sent to %s", to_email)
-    except Exception as exc:  # pragma: no cover - network dependent
+        await asyncio.to_thread(_sync_send)
+        logger.info("OTP email sent successfully via SMTP to %s", to_email)
+    except Exception as exc:
         logger.error("Failed to send email via SMTP to %s: %s", to_email, exc)
         logger.warning(
             "[EMAIL:CONSOLE-FALLBACK] SMTP failed (%s). Email to %s\nSubject: %s\n%s",
