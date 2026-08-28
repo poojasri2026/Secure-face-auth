@@ -29,9 +29,11 @@ dist-ssr/
 
 # ---- ML model cache ----
 # InsightFace / onnx model weights are downloaded at runtime; do not commit them
-models/
+/models/
 *.onnx
+.insightface/
 ~/.insightface/
+!backend/app/models/
 
 # ---- Editor / OS ----
 .idea/
